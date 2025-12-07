@@ -1,9 +1,11 @@
 Elif'in Kodu için README:
 
 3) Elif → Random Path & Path Utilities
-📌 Elif’in görevi nedir? GA ve SA çalışabilmek için başlangıç yollarına ihtiyaç duyar. 
+📌 Elif’in görevi nedir?
+ GA ve SA çalışabilmek için başlangıç yollarına ihtiyaç duyar. 
 Elif bu yolları rastgele ama geçerli şekilde üreten kişi olacak. 
-📌 Elif ne yapacak? random_path(S, D) fonksiyonu S’den başlar Komşular arasından random seçim yaparak ilerler D’ye ulaşınca path döndürür
+📌 Elif ne yapacak?
+ random_path(S, D) fonksiyonu S’den başlar Komşular arasından random seçim yaparak ilerler D’ye ulaşınca path döndürür
 Adım sayısı çok artarsa durdurur simplify_path Döngüleri (cycle) bulur Aynı node ikinci kez geçildiyse aradaki kısmı siler Path’i temiz hale getirir
 Path doğrulama Path S’den D’ye gidiyor mu?
  Tüm edge’ler graf içinde geçerli mi? GA ve SA’ya yardımcı fonksiyonlar 
