@@ -118,7 +118,7 @@
             current = source
             visited = {source}
     
-            while current != destination and len(path) < max_steps:
+            while current != destination and len(path) < max_steps: #Bu koşul path çok uzadığı anda döngünün durmasını sağlıyor.
                 neighbors = list(G.neighbors(current))
     
                 if not neighbors:
