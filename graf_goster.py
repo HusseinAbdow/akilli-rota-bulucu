@@ -6,7 +6,7 @@ from generate_graf import graf_uret
 G = graf_uret()
 
 # alt graf olustur
-nodes = list(G.nodes())[:40]
+nodes = list(G.nodes())[:70]
 H = G.subgraph(nodes)
 
 plt.figure(figsize=(8, 8))
