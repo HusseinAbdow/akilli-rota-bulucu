@@ -1,5 +1,7 @@
 Elif'in Kodu için README:
 
+GÜNCELLEME: 1. nin yaptığı değişiklikler üstüne kodlar üzerinde güncelleme yapılmıştır
+
 3) Elif → Random Path & Path Utilities
 📌 Elif’in görevi nedir?
  GA ve SA çalışabilmek için başlangıç yollarına ihtiyaç duyar. 
@@ -28,3 +30,5 @@ tamamla_path(G, path, D)
 
 generate_neighbor_path(G, path, S, D)
 → SA için mevcut path’e küçük bir değişiklik yaparak yeni bir komşu yol üretir.
+
+
