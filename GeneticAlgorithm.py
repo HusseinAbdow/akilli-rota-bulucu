@@ -1,5 +1,5 @@
 import FriendsRandomPath as rp
-import generate_graph as gp
+import generate_graf as gp
 import Metrics as mr
 import random
 import pandas as pd
