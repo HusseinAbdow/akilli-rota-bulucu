@@ -37,7 +37,7 @@ def yolu_Sadelestir(path):
             seen[node] = len(cleaned) - 1 # Hafızaya kaydet (Düğüm: İndeks)
 
     return cleaned
-
+"""
 test_path =  [
     0, 3, 7, 12, 18, 21, 33, 40, 7, 12, 45, 50, 33, 21, 
     77, 88, 99, 77, 12, 3, 150, 160, 170, 12, 18, 200]
@@ -45,7 +45,7 @@ test_path =  [
 print("Orijinal path:", test_path)
 print("Sadeleştirme sonrası:", yolu_Sadelestir(test_path))
 
-
+"""
 def  yol_gecerli_mi(G, path, S, D):
     """
     Verilen yolun (path) kurallara uygun olup olmadığını denetler.
@@ -197,5 +197,6 @@ if random_path:
 else:
     # 500 deneme sonunda yol çıkmadıysa
     print("Yol bulunamadı. Tekrar deneyin.")
+
 
 """
