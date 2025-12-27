@@ -321,7 +321,7 @@ if __name__ == "__main__":
             r_str = f"{metrics['rel_cost']:.2f}"
             b_str = f"{metrics['bw_cost']:.2f}"
         else:
-            status = "FAIL"
+            status = "Basarisiz"
             cost_str = "-"
             d_str = "-"
             r_str = "-"
@@ -345,3 +345,4 @@ if __name__ == "__main__":
     print(f"En Dusuk Maliyet   : {min_cost_value:.2f} [Senaryo {min_cost_info}]")
 
     print("------------------------------")
+
