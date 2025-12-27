@@ -3,10 +3,10 @@ import random
 import math
 import os
 
-# --- IMPORT AYARLARI ---
+
 import generate_graf as gg
 
-# Dosya yolu düzeltmesi (Klasor yapina uyum saglar)
+# Dosya yolu düzeltmesi 
 # Proje farklı bilgisayarlarda çalıştırıldığında 'data/' klasörü hatası vermemesi için
 # dinamik yol kontrolü yapıyoruz. Dosyalar ana dizindeyse yolu güncelliyoruz.
 if not os.path.exists("data/NodeData.xlsx") and os.path.exists("NodeData.xlsx"):
@@ -343,4 +343,5 @@ if __name__ == "__main__":
     print(f"Basarili Cozum     : {success_count}")
     print(f"Ortalama Maliyet   : {avg_cost:.2f}")
     print(f"En Dusuk Maliyet   : {min_cost_value:.2f} [Senaryo {min_cost_info}]")
+
     print("------------------------------")
