@@ -1,5 +1,5 @@
-import FriendsRandomPath as rp
-import GraphUpdate as gp
+import path_utilities as rp
+import generate_graf as gp
 import Metrics as mr
 import random
 import pandas as pd
@@ -268,7 +268,7 @@ def main():
     print("==========================================\n")
 
     # 1. Dosya İsimleri
-    demand_file = "BSM307_317_Guz2025_TermProject_DemandData.csv"
+    demand_file = "data/demand.csv"
 
     # 2. Grafı Yükle
     print("📡 1. Adım: Ağ Topolojisi (Graf) Yükleniyor...")
@@ -343,4 +343,5 @@ def main():
 
 
 if __name__ == "__main__":
+
     main()
