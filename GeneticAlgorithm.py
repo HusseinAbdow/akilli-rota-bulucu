@@ -268,7 +268,7 @@ def main():
     print("==========================================\n")
 
     # 1. Dosya İsimleri
-    demand_file = "data/demand.csv"
+    demand_file = "data/DemandData.xlsx"
 
     # 2. Grafı Yükle
     print("📡 1. Adım: Ağ Topolojisi (Graf) Yükleniyor...")
@@ -345,3 +345,4 @@ def main():
 if __name__ == "__main__":
 
     main()
+
