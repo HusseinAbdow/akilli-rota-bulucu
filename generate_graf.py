@@ -1,8 +1,6 @@
 import networkx as nx
 import pandas as pd
 
-
-
 # Excel dosyalarının yolları
 NODE_DATA_PATH = "data/NodeData.xlsx"
 EDGE_DATA_PATH = "data/EdgeData.xlsx"

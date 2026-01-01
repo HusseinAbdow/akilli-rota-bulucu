@@ -1,0 +1,68 @@
+import networkx as nx
+from dataclasses import dataclass
+from typing import List, Optional
+
+
+__all__ = ["Node", "Link", "NetworkTopology"]
+
+
+@dataclass
+class Node:
+    id: int
+    processing_delay: float
+    reliability: float
+
+    df to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "processing_delay": self.processing_delay,
+            "reliability": self.reliability,
+        }
+
+
+@dataclass
+class Link:
+    source: int
+    target: int
+    bandwidth: float
+    delay: float
+    reliability: float
+
+    def to_dict(self) -> dict:
+        return {
+            "source": self.source,
+            "target": self.target,
+            "bandwidth": self.bandwidth,
+            "delay": self.delay,
+            "reliability": self.reliability,
+        }
+
+
+class NetworkTopology:
+    def __init__(self):
+        self.graph = nx.Graph()
+
+    def add_node(self, node: Node) -> None:
+        self.graph.add_node(int(node.id), data=node)
+
+    def add_link(self, link: Link) -> None:
+        self.graph.add_edge(int(link.source), int(link.target), data=link)
+
+    def get_nodes(self) -> List[Node]:
+        return [self.graph.nodes[n]["data"] for n in self.graph.nodes]
+
+    def get_links(self) -> List[Link]:
+        return [self.graph.edges[u, v]["data"] for u, v in self.graph.edges]
+
+    def get_node(self, u: int) -> Optional[Node]:
+        return self.graph.nodes[u]["data"] if self.graph.has_node(u) else None
+
+    def get_link(self, u: int, v: int) -> Optional[Link]:
+        return self.graph.edges[u, v]["data"] if self.graph.has_edge(u, v) else None
+
+    def clear(self) -> None:
+        self.graph.clear()
+
+    @staticmethod
+    def from_nx_graph(G: nx.Graph) -> "NetworkTopology":
+        topology = NetworkTopol

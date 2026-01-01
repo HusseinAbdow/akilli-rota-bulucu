@@ -268,7 +268,7 @@ def main():
     print("==========================================\n")
 
     # 1. Dosya İsimleri
-    demand_file = "data/DemandData.xlsx"
+    demand_file = "data/BSM307_317_Guz2025_TermProject_DemandData(in)(1).csv"
 
     # 2. Grafı Yükle
     print("📡 1. Adım: Ağ Topolojisi (Graf) Yükleniyor...")
