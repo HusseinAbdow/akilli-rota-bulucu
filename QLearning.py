@@ -150,38 +150,59 @@ class QLearningAgent:
 
 if __name__ == "__main__":
     
-    start = 0
-    target = 249
+    import pandas as pd
+    import Metrics
+    import generate_graf
     
-    agent = QLearningAgent(start, target)
+    print("\n" + "="*60)
+    print("📢 Q-Learning Standalone Modu (Excel Verisi Okunuyor)...")
+    print("="*60)
     
-    
-    agent.train()
-    
-    
-    best_path = agent.get_best_path()
-    
-    if best_path:
-        print("\n" + "="*40)
-        print("🚀 Q-LEARNING SONUÇLARI")
-        print("="*40)
-        print(f"Bulunan Yol: {best_path}")
-        print(f"Adım Sayısı (Hop Count): {len(best_path) - 1}")
+    try:
+        
+        df = pd.read_excel("data/DemandData.xlsx")
+        print(f"📂 {len(df)} talep (senaryo) bulundu.\n")
         
         
-        d = Metrics.Total_Delay(agent.G, best_path)
-        r_cost = Metrics.Total_Reliability(agent.G, best_path)
-        bw_cost = Metrics.Total_Bandwidth(agent.G, best_path)
+        print("⚙️ Graf oluşturuluyor (generate_graf)...")
+        G = generate_graf.graf_uret()
+
         
-        total_cost = (W_DELAY * d) + (W_RELIABILITY * r_cost) + (W_RESOURCE * bw_cost)
-        final_reward = 1000 / total_cost if total_cost > 0 else 0
-        
-        print("-" * 30)
-        print(f"⏱️  Toplam Gecikme: {d} ms")
-        print(f"🛡️  Güvenilirlik Maliyeti: {r_cost}")
-        print(f"📉 Kaynak Maliyeti: {bw_cost}")
-        print(f"💰 Toplam Ağırlıklı Maliyet: {total_cost:.4f}")
-        print(f"🏆 Hesaplanan Reward: {final_reward:.4f}")
-        print("="*40)
-    else:
-        print("Yol bulunamadı.")
+        for index, row in df.iterrows():
+            try:
+                
+                src = int(row.iloc[0])
+                dst = int(row.iloc[1])
+                demand_val = str(row.iloc[2]).replace(',', '.')
+                demand = float(demand_val)
+                
+                print(f"🔹 Senaryo {index+1}: {src} -> {dst} (Demand: {demand})")
+                
+                
+                agent = QLearningAgent(src, dst)
+                agent.G = G 
+                
+                
+                agent.train()  
+                # ----------------------------------
+                
+                path = agent.get_best_path()
+                
+                if path:
+                    d = Metrics.Total_Delay(G, path)
+                    r = Metrics.Total_Reliability(G, path)
+                    bw = Metrics.Total_Bandwidth(G, path)
+                    
+                    print(f"   ✅ Yol: {path}")
+                    print(f"   📊 Delay: {d:.2f} | Rel: {r:.2f} | BW: {bw:.2f}")
+                else:
+                    print("   ❌ Yol bulunamadı.")
+                
+                print("-" * 40)
+                
+            except Exception as e:
+                print(f"⚠️ Hata (Satır {index+1}): {e}")
+                
+    except Exception as e:
+        print(f"❌ Genel Hata: {e}")
+        print("Lütfen 'generate_graf.py' dosyasının ve 'data' klasörünün varlığını kontrol et.")
