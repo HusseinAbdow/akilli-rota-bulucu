@@ -3,7 +3,7 @@ import pandas as pd
 import os
 
 # Gerekli modülleri import ediyoruz
-import GraphUpdate as gg
+import generate_graf as gg
 import Metrics as mt
 import ACO_Algorithm as aco_module
 import GeneticAlgorithm as ga_module
