@@ -28,7 +28,7 @@ akilli-rota-bulucu/
 └── README.md               # Proje dokümantasyonu
 ```
 
-> ⚠️ Not: Önceki sürümlerde bulunan yinelenmiş klasör yapısı kaldırılmıştır. Projenin **tek geçerli yapısı** yukarıdaki gibidir.
+
 
 ---
 
