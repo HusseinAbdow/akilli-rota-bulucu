@@ -102,16 +102,6 @@ Algoritmalar kök dizinde yer almakta ve UI tarafından çağrılmaktadır.
 * Yeni algoritma eklerken kök dizin yapısı korunmalıdır
 * Büyük yapısal değişikliklerden sonra `git reset --hard origin/main` gerekebilir
 
----
-
-## 👥 Katkı
-
-Bu proje akademik bir çalışma kapsamında geliştirilmiştir. Katkı sağlamak için:
-
-1. Fork alın
-2. Yeni bir branch oluşturun
-3. Değişikliklerinizi commit edin
-4. Pull Request gönderin
 
 ---
 
