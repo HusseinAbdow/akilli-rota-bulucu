@@ -1,54 +1,90 @@
-# Akıllı Rota Bulucu (Smart Route Finder)
+# Smart Route Finder (Akıllı Rota Bulucu)
 
-Bu proje, ağ (graph) yapıları üzerinde **akıllı rota bulma** problemini çözmek için geliştirilmiştir. Farklı algoritmalar (Genetic Algorithm, ACO, Q-Learning vb.) kullanılarak en uygun rotanın bulunması ve sonuçların **grafik arayüz (UI)** üzerinden görselleştirilmesi amaçlanmaktadır.
+This project was developed to solve the **smart route finding** problem on network (graph) structures. The goal is to find the most optimal route using different algorithms (Genetic Algorithm, ACO, Q-Learning, etc.) and to visualize the results through a **graphical user interface (UI)**.
 
-Proje; algoritma katmanı, veri üretimi/işleme katmanı ve kullanıcı arayüzü olacak şekilde yeniden düzenlenmiştir.
+The project is organized into an algorithm layer, a data generation/processing layer, and a user interface layer.
 
 ---
 
-## 📁 Proje Klasör Yapısı
+## 🎬 Preview
+
+<img src="assets/demo-preview.gif" alt="Smart Route Finder demo preview" width="100%">
+
+*Demo of the app in action (autoplays and loops on GitHub).*
+
+---
+
+## 🖥️ Interface
+
+<img src="assets/app-interface.png" alt="Full app interface with graph and controls" width="100%">
+
+*Whole interface section: network graph (right) and controls (left).*
+
+---
+
+## 🕸️ Network Graph
+
+<img src="assets/network-graph.png" alt="Close-up view of the network graph with best path" width="700">
+
+*Closer view of the network graph: source (S), destination (D), and the best path found.*
+
+---
+
+## 🎛️ Control Panel
+
+<img src="assets/control-panel.png" alt="Control panel only" width="400">
+
+*Controls section only: network generation, path finding settings, results, and experimental comparison.*
+
+---
+
+## 📁 Project Folder Structure
 
 ```
 akilli-rota-bulucu/
 │
-├── Arayuz/                 # Grafik kullanıcı arayüzü (UI)
-│   ├── main.py             # Uygulamanın çalıştırıldığı ana dosya
-│   ├── ui/                 # UI bileşenleri
-│   └── resources/          # Görseller ve statik dosyalar
+├── Arayuz/                 # Graphical user interface (UI) ("Arayuz" = "Interface" in Turkish)
+│   ├── main.py             # Main entry point that launches the application
+│   ├── ui/                 # UI components
+│   └── resources/          # Images and static files
 │
-├── ACO_Algorithm.py        # Ant Colony Optimization algoritması
-├── GeneticAlgorithm.py     # Genetic Algorithm algoritması
-├── QLearning.py            # Q-Learning algoritması
-├── Metrics.py              # Performans metrikleri
-├── generate_graf.py        # Grafik (graph) üretimi
-├── path_utilities.py       # Yol / rota yardımcı fonksiyonları
+├── ACO_Algorithm.py        # Ant Colony Optimization algorithm
+├── GeneticAlgorithm.py     # Genetic Algorithm
+├── QLearning.py            # Q-Learning algorithm
+├── Metrics.py              # Performance metrics
+├── generate_graf.py        # Graph generation ("graf" = "graph")
+├── path_utilities.py       # Path / route helper functions
 │
-├── data/                   # Veri dosyaları (CSV vb.)
-├── requirements.txt        # Python bağımlılıkları
-└── README.md               # Proje dokümantasyonu
+├── data/                   # Data files (CSV, etc.)
+├── assets/                 # README visuals (demo GIF + screenshots)
+│   ├── demo-preview.gif    # Autoplaying app demo (preview)
+│   ├── app-interface.png   # Full interface (graph + controls)
+│   ├── network-graph.png   # Close-up of the network graph
+│   └── control-panel.png   # Controls section only
+│
+├── requirements.txt        # Python dependencies
+└── README.md               # Project documentation
 ```
 
+---
 
+## ⚙️ Requirements
+
+* Python **3.9+** (recommended)
+* Required Python libraries (listed in requirements.txt)
 
 ---
 
-## ⚙️ Gereksinimler
+## 📦 Installation
 
-* Python **3.9+** (önerilen)
-* Gerekli Python kütüphaneleri (requirements.txt içinde listelenmiştir)
-
----
-
-## 📦 Kurulum
-
-1️⃣ Repoyu klonlayın:
+1️⃣ Clone the repo:
 
 ```bash
 git clone https://github.com/HusseinAbdow/akilli-rota-bulucu.git
 cd akilli-rota-bulucu
 ```
 
-2️⃣ (Önerilen) Sanal ortam oluşturun:
+2️⃣ (Recommended) Create a virtual environment:
 
 ```bash
 python -m venv venv
@@ -60,7 +96,7 @@ source venv/bin/activate
 venv\Scripts\activate
 ```
 
-3️⃣ Gerekli paketleri yükleyin:
+3️⃣ Install the required packages:
 
 ```bash
 pip install -r requirements.txt
@@ -68,49 +104,48 @@ pip install -r requirements.txt
 
 ---
 
-## ▶️ Uygulamayı Çalıştırma
+## ▶️ Running the Application
 
-Uygulamanın **ana giriş noktası (main)** aşağıdaki dosyadadır:
+The **main entry point** of the application is:
 
 ```
 Arayuz/main.py
 ```
 
-Çalıştırmak için:
+To run it:
 
 ```bash
 python Arayuz/main.py
 ```
 
-Bu komut grafik arayüzü başlatır ve rota bulma algoritmalarını UI üzerinden kullanmanızı sağlar.
+This command launches the graphical interface and lets you use the route-finding algorithms through the UI.
 
 ---
 
-## 🧠 Kullanılan Algoritmalar
+## 🧠 Algorithms Used
 
-* **Genetic Algorithm** – Evrimsel optimizasyon
-* **Ant Colony Optimization (ACO)** – Karınca koloni tabanlı rota bulma
-* **Q-Learning** – Takviyeli öğrenme yaklaşımı
+* **Genetic Algorithm** – Evolutionary optimization
+* **Ant Colony Optimization (ACO)** – Ant-colony-based route finding
+* **Q-Learning** – Reinforcement learning approach
 
-Algoritmalar kök dizinde yer almakta ve UI tarafından çağrılmaktadır.
-
----
-
-## 🧪 Geliştirme Notları
-
-* `__pycache__/` klasörleri GitHub’a dahil edilmemelidir
-* Yeni algoritma eklerken kök dizin yapısı korunmalıdır
-* Büyük yapısal değişikliklerden sonra `git reset --hard origin/main` gerekebilir
-
+The algorithms live in the root directory and are called by the UI.
 
 ---
 
-## 📄 Lisans
+## 🧪 Development Notes
 
-Bu proje eğitim amaçlıdır. Lisans bilgisi daha sonra eklenecektir.
+* `__pycache__/` folders should not be included in GitHub
+* Preserve the root directory structure when adding a new algorithm
+* `git reset --hard origin/main` may be required after large structural changes
 
 ---
 
-## ✍️ Not
+## 📄 License
 
-Bu README, proje yapısının sadeleştirilmesi ve UI merkezli kullanım amacıyla hazırlanmıştır. Eski klasör yapıları artık geçerli değildir.
+This project is for educational purposes. License information will be added later.
+
+---
+
+## ✍️ Note
+
+This README was prepared to simplify the project structure and focus on UI-centered usage. Old folder structures are no longer valid.
