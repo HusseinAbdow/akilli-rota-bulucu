@@ -6,26 +6,26 @@ import pandas as pd
 import GeneticAlgorithm as ga
 
 def population(G,source,target,size):
-    #popülasyon oluşturma işlemi
+    # population creation
     pop_list=[]
     tester=0
-    while tester<(size*10):#Alacağımız kadarın 10 katı kadar deneme verdim.Her bir yol girmesi için 10 şans verdim.
-        list1=rp.generate_random_path(G,source,target)#Elifin oluşturduğu rastgele yol oluşturma fonksiyonuyla rastgele yollar aldım
-        if list1!=None and list1 not in pop_list and len(list1)>=2:#Eğer bu yol var olup olmadığını,popülasyonda var olup olmadığını ve en az 2 node olup olmadığına bakıyor
+    while tester<(size*10):# Gave 10 trials per requested individual (10x the requested size). Each path gets 10 chances to enter.
+        list1=rp.generate_random_path(G,source,target)# Got random paths with the random path generator function
+        if list1!=None and list1 not in pop_list and len(list1)>=2:# Check if this path exists, whether it is already in the population, and whether it has at least 2 nodes
             pop_list.append(list1)
 
-        if len(pop_list)==size:#Önceden popülasyon dolarsa döngüyü kırıyor.
+        if len(pop_list)==size:# If population fills early, break the loop.
             break
         tester+=1
     return pop_list
 
 
 def fitness_calculation(G,pop_list,w_delay=0.5, w_rel=0.1,w_band=0.4,max_delay=100,demand_mbps=0.2):
-    #fitness değeerini hesaplama fonsiyonu,burada aslında maliyet hesaplanıyor.Yani en az değeri olan daha iyi.
+    # fitness calculation function, actually cost is calculated here. Lower value is better.
     pop_fit=[]
-    #w_delay+w_rel+w_band=1.Bu denklem şart.
+    #w_delay+w_rel+w_band=1. This equation is required.
 
-    for pop in pop_list:#Burada tek tek popülasyonda olanların maliyetini hesaplıyor,yaptığım metrics sınıfında.
+    for pop in pop_list:# Here the cost of each population member is calculated one by one, using my metrics class.
         TotalDelay=mr.Total_Delay(G,pop)
         TotalReliability=mr.Total_Reliability(G,pop)
         TotalBandwidth=mr.Total_Bandwidth(G,pop)
@@ -39,47 +39,47 @@ def fitness_calculation(G,pop_list,w_delay=0.5, w_rel=0.1,w_band=0.4,max_delay=1
                 min_mbps=mbps
 
 
-        if TotalDelay > max_delay:#Eğer toplam delay bizim belirlediğimiz max_delaydan yüksekse değerini çöp yapıyoruz.Maksat o yolu seçmesini engellemek.
+        if TotalDelay > max_delay:# If total delay is higher than our max_delay, trash its value. Goal is to prevent that path from being selected.
             fitness = 999999
         elif demand_mbps>min_mbps:
             fitness = 999999
         else:
             fitness=((TotalDelay*w_delay)+(TotalReliability*w_rel)+(TotalBandwidth*w_band))
 
-        pop_fit.append((pop,fitness))#Burada hem yolu hem de onun maliyetini ekliyoruz tupple olarak.
+        pop_fit.append((pop,fitness))# Here both the path and its cost are added as a tuple.
 
     return pop_fit
 
-def get_parent(pop_fit):#Buradaki amaç çeşitliliği arttırmak.Sadece bir yol dönderir.Yani bir birey seçer.
+def get_parent(pop_fit):# Goal here is to increase diversity. Returns only one path. I.e. selects one individual.
     select_temp=[]
 
     if len(pop_fit)==0:
         return None
 
     if len(pop_fit)<=4:
-        select_temp=pop_fit.copy()#4 ve 4 den az ise direkt kopyalama yaptım.
+        select_temp=pop_fit.copy()# If 4 or fewer, copy directly.
     else:
         count = 0
-        while len(select_temp) < 4 and count < 50:  # Burada  rastgele 4 tanesi seçilmeye çalışılıyor.Aynı değerler olmaması çallışılıyor.Çok zorlamasın diye sayaç koydum.
+        while len(select_temp) < 4 and count < 50:  # Try to pick 4 random distinct ones. Counter added so it does not struggle too long.
             temp = random.choice(pop_fit)
             if temp not in select_temp:
                 select_temp.append(temp)
             count += 1
 
-        while len(select_temp) < 4:  # Eğer hala seçilmediyse seçilene kadar ekleme yapılıyor.
+        while len(select_temp) < 4:  # If still not selected, keep adding until selected.
             tempeture = random.choice(pop_fit)
             select_temp.append(tempeture)
     candidates=[]
     weights=[]
 
-    for path,fitness in select_temp:#Ruleta mantığı ile seçim yapmak için o yolların ağırlıklarını hesapladım.
+    for path,fitness in select_temp:# Calculated weights of those paths for roulette-wheel selection.
         candidates.append(path)
-        weight=1/(fitness+0.0001)#Payda'da 0'ı önlemek için 0.0001 ekledim.
+        weight=1/(fitness+0.0001)# Added 0.0001 to avoid 0 in denominator.
         weights.append(weight)
 
-    selected=random.choices(candidates,weights=weights,k=1)#Burada neredeyse aynı fitness değerlerine sahip olanları,seçim şanslarınında aynı seçilmesi için yaptım.
+    selected=random.choices(candidates,weights=weights,k=1)# Done so that those with almost equal fitness values have equal selection chances.
 
-    return selected[0]#seçilenin yolunu dönderdim.
+    return selected[0]# Returned the selected path.
 
 def selection(pop_fit):
     father=get_parent(pop_fit)
@@ -90,59 +90,59 @@ def selection(pop_fit):
 
 
 def crossover(father,mother):
-    if father==None or mother==None:#Anne veya baba yoksa çocuk da yok.
+    if father==None or mother==None:# If mother or father is missing, there is no child.
         return None
 
-    common_node=[node for node in father if node in mother]#ortak noktalarını aldım,crossover yapabilmek için.
+    common_node=[node for node in father if node in mother]# Took common points for crossover.
     child=[]
 
-    if len(common_node)<2:#ortak nokta 2 den az ise hiç ortak nokta yok.Zaten garanti source ile target olmak zorunda.
+    if len(common_node)<2:# If fewer than 2 common points, there is no common point. Source and target must already be guaranteed.
         return None
 
     for index in range(len(common_node)-1):
-        u=common_node[index]#Sırasıyla ortak nokta aldığımız için burada ilk ile bir sonraki ortak noktayı alıyorum.
+        u=common_node[index]# Since common points were taken in order, take the first and the next common point here.
         v=common_node[index+1]
 
-        indFaU=father.index(u)#Burada babnın ortak noktasının indeksini alıyorum.
+        indFaU=father.index(u)# Take the father's common point index here.
         indFaV=father.index(v)
-        listFa=father[indFaU:indFaV]#Aldığım indekslerin yardımıyla kesim yapıyorum.
+        listFa=father[indFaU:indFaV]# Cut using the taken indices.
 
-        indMoU=mother.index(u)#Aynı senaryo annede de geçerli.
+        indMoU=mother.index(u)# Same scenario applies to the mother.
         indMoV=mother.index(v)
         listMo=mother[indMoU:indMoV]
 
-        rand_cho=random.choice([listFa,listMo])#rastgele seçim yapıyorum aralarında.
-        child.extend(rand_cho) #Listeye tek tek ekleme yapıyorum.
+        rand_cho=random.choice([listFa,listMo])# Randomly choose between them.
+        child.extend(rand_cho) # Add one by one to the list.
 
-    child.append(common_node[-1])#En sonda target ı ekliyorum.
-    return rp.yolu_Sadelestir(child)#Elifin yaptığı yolu sadeleştir fonksiyonuyla yolu sadeleştiriyorum.Sonra o değeri döndürüyorum.
+    child.append(common_node[-1])# Finally add the target.
+    return rp.yolu_Sadelestir(child)# Simplify the path with the simplify-path function and return that value.
 
 def multi_mutation(G,child,mutation_rate=0.1):
 
-    if random.random() < mutation_rate and len(child)>2:#Zar atıyorum.Eğer zar tutarsa mutasyon yapılacak.Ayrıyeten çocuğun uzunlu 2 den büyük olması lazım.(S,T)
+    if random.random() < mutation_rate and len(child)>2:# Roll the dice. If it hits, mutate. Also child length must be > 2. (S,T)
         temp=None
-        zar=random.random()
-        if zar<0.60:
+        roll=random.random()
+        if roll<0.60:
             temp=mutation_version1(G,child)
-        elif zar<0.80:
+        elif roll<0.80:
             temp=mutation_version2(G,child)
         else:
             temp=mutation_version3(G,child)
 
-        if temp==None:#Boş gelirse mutasyon yaptırmadım.Eğer tam yol geldiyse Elifin yolu sadeleştir fonksiyonuyla yolu sadeleştirip değeri dönderdim.
+        if temp==None:# If empty, no mutation applied. If a full path arrived, simplify it with the simplify-path function and return the value.
             return child
         else:
             return rp.yolu_Sadelestir(temp)
     else:
         return child
 
-def mutation_version1(G,child):#Misal path:1-2-3-4-5-6-7-8-9 dan path mutasyonlu:1-2-3-4-15-6-8-9
-    choice = random.randint(1, len(child) - 2)  # Rastgele indeks sayısı aldım.Source ile target ı dahil etmedim.
-    temp = child[:choice + 1]  # Seçilen yerde dahil,oraya kadarını aldım.
-    temp = rp.tamamla_path(G, temp, child[-1])  # Elifin yaptığı yolu tamamla fonskiyonuyla yolu tamamlattırdım.
+def mutation_version1(G,child):# E.g. path:1-2-3-4-5-6-7-8-9 -> mutated path:1-2-3-4-15-6-8-9
+    choice = random.randint(1, len(child) - 2)  # Got a random index. Excluded source and target.
+    temp = child[:choice + 1]  # Took everything up to and including the selected point.
+    temp = rp.tamamla_path(G, temp, child[-1])  # Completed the path with the complete-path function.
     return temp
 
-def mutation_version2(G,child):#Misal path:1-2-3-4-5-6-7-8-9 mutasayonlu path:1-24-54-32-34-5-6-7-8-9
+def mutation_version2(G,child):# E.g. path:1-2-3-4-5-6-7-8-9 mutated path:1-24-54-32-34-5-6-7-8-9
     choice = random.randint(1, len(child) - 2)
     child_head=child[:choice + 1]
     tail=child[choice:]
@@ -159,7 +159,7 @@ def mutation_version2(G,child):#Misal path:1-2-3-4-5-6-7-8-9 mutasayonlu path:1-
     temp=head[:-1]+tail
     return temp
 
-def mutation_version3(G,child):#Misal path:1-2-3-4-5-6-7-8-9 mutasyonlu path: 1-2-3-4-54-65-76-32-43-8-9
+def mutation_version3(G,child):# E.g. path:1-2-3-4-5-6-7-8-9 mutated path: 1-2-3-4-54-65-76-32-43-8-9
     if len(child)>4:
         count=0
         while count<10:
@@ -183,67 +183,67 @@ def mutation_version3(G,child):#Misal path:1-2-3-4-5-6-7-8-9 mutasyonlu path: 1-
         return None
 
 def genetic_algorithm(G,source,target,demand_mbps,pop_size=50,generations=3000,mutation_rate=0.1,w_delay=0.33,w_rel=0.33,w_band=0.34,max_delay=100):
-    #Main kısmı
-    population_group=population(G,source,target,pop_size)#Popülasyon oluşturdum.
-    global_best_value=99999#En iyi değeri şimdilik 999999 verdim.İleride en iyi değer değişmezse geçiçi olarak mutasyon oranını arttıracağım.
-    mutation_value_count=0#Buda bir üstteki kodun sayacı.
-    current_mutation_rate=mutation_rate#Mutation rate kaybolmasın diye geçici bir mutation rate yaptım.Maksat eski oranı kullanmak için.Bunla iş yapacağız.
+    #Main part
+    population_group=population(G,source,target,pop_size)# Created the population.
+    global_best_value=99999# Gave best value 999999 for now. Later if best value never changes, temporarily increase mutation rate.
+    mutation_value_count=0# Counter for the line above.
+    current_mutation_rate=mutation_rate# Made a temporary mutation rate so the original rate is not lost. We will work with this one to reuse the old rate.
 
-    for i in range(generations):#Kaç nesil gitsin maksadıyla oluşturuldu.
-        fitness_group = fitness_calculation(G, population_group, w_delay, w_rel, w_band,max_delay,demand_mbps)#fitness değerleri hesaplandı.
-        best_generetion=[]#çocuklar için oluşturuldu.
-        fitness_group.sort(key=lambda x: x[1])#Sıraladım başta.Çünkü bir aşağıda yıldızlarla işaretledğim yerde en iyi iki kişiyi kaybetmemek için onları gruba ekledim.
+    for i in range(generations):# Created for how many generations to run.
+        fitness_group = fitness_calculation(G, population_group, w_delay, w_rel, w_band,max_delay,demand_mbps)# Fitness values calculated.
+        best_generetion=[]# Created for children.
+        fitness_group.sort(key=lambda x: x[1])# Sorted first. Because in the starred place below, the best two individuals are added to the group so they are not lost.
 
-        if fitness_group[0][1] < global_best_value:#Burada mutasyon oranını yükesltmek amacıyla yapıldı.En iyi değer bulunduysa sayacı sıfırladım.
+        if fitness_group[0][1] < global_best_value:# Done to increase mutation rate. If best value found, reset the counter.
             global_best_value=fitness_group[0][1]
             mutation_value_count=0
             current_mutation_rate=mutation_rate
-        else:#Eğer en iyi değer hala dönmediyse sayacı arttırıyorum.
+        else:# If best value still not returned, increase the counter.
             mutation_value_count+=1
 
-        if mutation_value_count==10:#Belli bir 10 nesildir hala en iyi değer gelmediyse mutasyon aranını  arttırıyorum.
+        if mutation_value_count==10:# If still no best value for 10 generations, increase the mutation rate.
             current_mutation_rate=0.3
 
-        if mutation_value_count==20:#20 nesıl olunca da mutasyon oranını eski haline getiriyorum.
+        if mutation_value_count==20:# At 20 generations, restore the mutation rate.
             current_mutation_rate = mutation_rate
 
-        if rp.yol_gecerli_mi(G,fitness_group[0][0],source,target):#*****Yol geçerli olup olmadığına da baktım.Değerde bozulma ihtimaline karşın kopyaladım.Referrans almadım.
-            best_generetion.append(fitness_group[0][0][:])#Referans almadım,kopyaladım.
+        if rp.yol_gecerli_mi(G,fitness_group[0][0],source,target):#***** Also checked if path is valid. Copied it in case value gets corrupted. Did not take reference.
+            best_generetion.append(fitness_group[0][0][:])# Copied, did not take reference.
 
-        if rp.yol_gecerli_mi(G,fitness_group[1][0],source,target):#*****Yol geçerli olup olmadığına da baktım.Değerde bozulma ihtimaline karşın kopyaladım.Referrans almadım.
-            best_generetion.append(fitness_group[1][0][:])#Referans almadım,kopyaladım.
+        if rp.yol_gecerli_mi(G,fitness_group[1][0],source,target):#***** Also checked if path is valid. Copied it in case value gets corrupted. Did not take reference.
+            best_generetion.append(fitness_group[1][0][:])# Copied, did not take reference.
 
-        child_count=0#Çocuk while döngüsünde kaç kere eklenmediyse diye sayaç oluşturdum.
-        generation_count=0#Eğer best_generation dolmazsa çok zorlamaması açısından sayaç koydum.Her nesil için 1000 kere hak var.
+        child_count=0# Counter created for how many times a child failed to be added in the while loop.
+        generation_count=0# Counter added so it does not struggle too much if best_generation never fills. 1000 tries per generation.
 
         while len(best_generetion)<pop_size and generation_count<1000:
 
-            father, mother = selection(fitness_group)#Anne baba seçiliyor.
-            child = crossover(father, mother)#Crossoveryapılıyor.
+            father, mother = selection(fitness_group)# Parents are selected.
+            child = crossover(father, mother)# Crossover is done.
 
-            if child is None: continue#Çocuk yoksa devam.
+            if child is None: continue# If no child, continue.
 
-            child = multi_mutation(G, child, current_mutation_rate)#Mutasyon yapılıyor,yapılacaksa tabi.
+            child = multi_mutation(G, child, current_mutation_rate)# Mutation applied, if applicable.
 
-            if rp.yol_gecerli_mi(G,child, source,target):#Elifin yazdığı yol geçerli mi fonksiyonunda yolun olup olmadığına bakılıyor.True yada false döndürüyor.
-                if child not in best_generetion or child_count>15:#Çocuk best_generetion da yoksa veya sayaç 15 i geçtiyse çocuğu ekliyor.
+            if rp.yol_gecerli_mi(G,child, source,target):# Check via the is-path-valid function whether the path exists. Returns True or False.
+                if child not in best_generetion or child_count>15:# If child is not in best_generation or counter exceeded 15, add the child.
                     best_generetion.append(child)
                     child_count=0
                 else:
                     child_count+=1
             generation_count+=1
 
-        population_group=best_generetion#En sonda oluşan çocuklar bir diğer nesili oluşturmak için çocuk yapacak.Yani bunlar anne,baba seçimi olacak.
+        population_group=best_generetion# Finally the created children will make children to form the next generation. I.e. they will be parent selections.
 
 
-    fitness_group = fitness_calculation(G, population_group, w_delay, w_rel, w_band,max_delay,demand_mbps)#En sonda oluşan best yolların fitness ını(maliyetini) hesapladım.
-    fitness_group.sort(key=lambda x:x[1])#Sıraladım.En düşük maliyet en başta.
-    return fitness_group[0][0]#En iyisi döndürdüm.
+    fitness_group = fitness_calculation(G, population_group, w_delay, w_rel, w_band,max_delay,demand_mbps)# Finally calculated fitness (cost) of the best paths formed.
+    fitness_group.sort(key=lambda x:x[1])# Sorted. Lowest cost first.
+    return fitness_group[0][0]# Returned the best.
 
 
 
 
-def read_demands(filename):#Dosya okuma işlemleri
+def read_demands(filename):# File reading operations
     try:
         df = pd.read_csv(filename, sep=";")
         rows = []
@@ -258,47 +258,47 @@ def read_demands(filename):#Dosya okuma işlemleri
 
         return rows
     except Exception as e:
-        print(f"Dosya okuma hatası : {e}")
+        print(f"File read error : {e}")
         return []
 
 
 def main():
     print("==========================================")
-    print("      GENETİK ALGORİTMA AĞ SİMÜLASYONU     ")
+    print("      GENETIC ALGORITHM NETWORK SIMULATION     ")
     print("==========================================\n")
 
-    # 1. Dosya İsimleri
+    # 1. File names
     demand_file = "data/BSM307_317_Guz2025_TermProject_DemandData(in)(1).csv"
 
-    # 2. Grafı Yükle
-    print("📡 1. Adım: Ağ Topolojisi (Graf) Yükleniyor...")
+    # 2. Load the graph
+    print("📡 Step 1: Loading network topology (graph)...")
     try:
-        G = gp.graf_uret()  # Arkadaşının fonksiyonu
-        print(f"   ✅ Graf Başarıyla Oluşturuldu ({len(G.nodes)} Düğüm, {len(G.edges)} Kenar)\n")
+        G = gp.graf_uret()  # Graph generator function
+        print(f"   ✅ Graph created successfully ({len(G.nodes)} nodes, {len(G.edges)} edges)\n")
     except Exception as e:
-        print(f"   ❌ Graf oluşturulurken hata: {e}")
+        print(f"   ❌ Error while creating graph: {e}")
         return
 
-    # 3. Talepleri Oku
-    print(f"📋 2. Adım: Talep Dosyası Okunuyor ({demand_file})...")
+    # 3. Read demands
+    print(f"📋 Step 2: Reading demand file ({demand_file})...")
     demands = read_demands(demand_file)
-    print(f"   ✅ Toplam {len(demands)} adet talep işlenecek.\n")
+    print(f"   ✅ Total {len(demands)} demands to process.\n")
 
-    # 4. Her Talep İçin Algoritmayı Çalıştır
-    print("🚀 3. Adım: Simülasyon Başlıyor...\n")
+    # 4. Run the algorithm for each demand
+    print("🚀 Step 3: Simulation starting...\n")
 
     successful_routes = 0
 
-    # Ağırlık Ayarları (GA fonksiyonundaki varsayılanlarla AYNI olmalı)
-    # Eğer GA fonksiyonuna dışarıdan ağırlık yollamıyorsan varsayılanları buraya yaz:
+    # Weight settings (MUST be the same as defaults in the GA function)
+    # If you don't pass weights externally to the GA function, write the defaults here:
     w_delay = 0.33
     w_rel = 0.33
     w_band = 0.34
 
     for i, (src, dst, bw_demand) in enumerate(demands):
-        print(f"🔹 Talep {i + 1}: Kaynak {src} -> Hedef {dst} | İstenen Hız: {bw_demand} Mbps")
+        print(f"🔹 Demand {i + 1}: Source {src} -> Destination {dst} | Requested speed: {bw_demand} Mbps")
 
-        # Algoritmayı Çağır
+        # Call the algorithm
         try:
             best_path = ga.genetic_algorithm(
                 G,
@@ -309,40 +309,39 @@ def main():
                 generations=3000,
                 mutation_rate=0.1,
                 max_delay=200,
-                # Ağırlıkları buraya da yazabilirsin, garanti olsun:
+                # Write weights here too, to be safe:
                 w_delay=w_delay, w_rel=w_rel, w_band=w_band
             )
 
-            # Sonuç Kontrolü
+            # Result check
             if best_path:
-                print(f"   ✅ YOL BULUNDU: {best_path}")
+                print(f"   ✅ PATH FOUND: {best_path}")
 
-                # --- FITNESS HESAPLAMA EKLENTİSİ ---
+                # --- FITNESS CALCULATION ADD-ON ---
                 d_val = mr.Total_Delay(G, best_path)
                 r_val = mr.Total_Reliability(G, best_path)
                 b_val = mr.Total_Bandwidth(G, best_path)
 
-                # Fitness Formülü: (Gecikme*w) + (Güvenilirlik*w) + (Bant*w)
+                # Fitness formula: (Delay*w) + (Reliability*w) + (Bandwidth*w)
                 fitness_score = (d_val * w_delay) + (r_val * w_rel) + (b_val * w_band)
 
-                print(f"   📊 Gecikme: {d_val:.2f} ms")
-                print(f"   🧬 Fitness Skoru: {fitness_score:.4f}")
+                print(f"   📊 Delay: {d_val:.2f} ms")
+                print(f"   🧬 Fitness Score: {fitness_score:.4f}")
                 # -----------------------------------
 
                 successful_routes += 1
             else:
-                print("   ❌ UYGUN YOL BULUNAMADI (Kapasite yetersiz veya kopukluk var)")
+                print("   ❌ NO SUITABLE PATH FOUND (insufficient capacity or disconnection)")
 
         except Exception as e:
-            print(f"   ⚠️ Algoritma hatası: {e}")
+            print(f"   ⚠️ Algorithm error: {e}")
 
         print("-" * 40)
 
-    print(f"\n🏁 Simülasyon Tamamlandı.")
-    print(f"📊 Başarı Oranı: {successful_routes}/{len(demands)}")
+    print(f"\n🏁 Simulation completed.")
+    print(f"📊 Success rate: {successful_routes}/{len(demands)}")
 
 
 if __name__ == "__main__":
 
     main()
-

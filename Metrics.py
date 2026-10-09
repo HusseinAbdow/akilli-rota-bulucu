@@ -4,7 +4,7 @@ import generate_graf as gg
 
 def Total_Delay(G,path):
     """
-        Verilen yolun toplam gecikmesini (Link + Node Processing) hesaplar.
+        Calculate the total delay of the given path (Link + Node Processing).
         """
     TotalDelay = 0
 
@@ -20,9 +20,9 @@ def Total_Delay(G,path):
 
 def Total_Reliability(G,path):
     """
-        Verilen yolun toplam güvenilirliğini hesaplar.
-        Not: Çarpım işlemini toplama çevirmek için -log dönüşümü kullanılmıştır.
-        Düşük değer = Yüksek Güvenilirlik.
+        Calculate the total reliability of the given path.
+        Note: -log transformation is used to convert multiplication into addition.
+        Lower value = Higher reliability.
         """
     TotalReliability = 0
 
@@ -38,8 +38,8 @@ def Total_Reliability(G,path):
 
 def Total_Bandwidth(G,path):
     """
-        Verilen yolun bant genişliği maliyetini hesaplar.
-        OSPF mantığı (1000 / Bandwidth) kullanılmıştır.
+        Calculate the bandwidth cost of the given path.
+        OSPF logic (1000 / Bandwidth) is used.
         """
 
     ResourceCost=0
@@ -51,41 +51,41 @@ def Total_Bandwidth(G,path):
 
 
 if __name__ == "__main__":
-    print("--- METRİK HESAPLAMA TESTİ BAŞLIYOR ---\n")
+    print("--- METRIC CALCULATION TEST STARTING ---\n")
 
-    # 1. Grafı Oluştur
+    # 1. Create the graph
     G = gg.graf_uret()
-    print(f"Graf oluşturuldu. Node sayısı: {len(G.nodes)}")
+    print(f"Graph created. Node count: {len(G.nodes)}")
 
-    # 2. Rastgele bir yol bul (0'dan 4'e en kısa yol gibi)
-    # Not: Senin algoritman değil, test için hazır fonksiyon kullanıyoruz.
+    # 2. Find a random path (e.g. shortest path from 0 to 4)
+    # Note: Not your algorithm, using a built-in function for testing.
     try:
-        ornek_yol = nx.shortest_path(G, source=0, target=4)
-        print(f"Test edilecek yol: {ornek_yol}")
+        sample_path = nx.shortest_path(G, source=0, target=4)
+        print(f"Path under test: {sample_path}")
         print("-" * 30)
 
-        # 3. Senin Fonksiyonlarını Test Et
+        # 3. Test your functions
 
-        # --- TEST A: GECİKME ---
-        gecikme = Total_Delay(G, ornek_yol)
-        print(f"1. Toplam Gecikme (Total_Delay): {gecikme} ms")
+        # --- TEST A: DELAY ---
+        delay = Total_Delay(G, sample_path)
+        print(f"1. Total Delay (Total_Delay): {delay} ms")
 
-        # --- TEST B: GÜVENİLİRLİK ---
-        guvenilirlik_cost = Total_Reliability(G, ornek_yol)
-        gercek_yuzde = exp(-guvenilirlik_cost)  # Maliyeti yüzdeye geri çeviriyoruz
-        print(f"2. Güvenilirlik Maliyeti (Cost): {guvenilirlik_cost}")
-        print(f"   -> Gerçek Güvenilirlik Oranı: %{gercek_yuzde * 100:.4f}")
+        # --- TEST B: RELIABILITY ---
+        reliability_cost = Total_Reliability(G, sample_path)
+        actual_rate = exp(-reliability_cost)  # Convert cost back to percentage
+        print(f"2. Reliability Cost: {reliability_cost}")
+        print(f"   -> Actual Reliability Rate: %{actual_rate * 100:.4f}")
 
-        # --- TEST C: BANT GENİŞLİĞİ ---
-        bant_maliyeti = Total_Bandwidth(G, ornek_yol)
-        print(f"3. Bant Genişliği Maliyeti: {bant_maliyeti}")
+        # --- TEST C: BANDWIDTH ---
+        bandwidth_cost = Total_Bandwidth(G, sample_path)
+        print(f"3. Bandwidth Cost: {bandwidth_cost}")
 
         print("-" * 30)
-        print("✅ TEST BAŞARIYLA TAMAMLANDI. Kodların hatasız çalışıyor.")
+        print("✅ TEST COMPLETED SUCCESSFULLY. Your code runs without errors.")
 
     except nx.NetworkXNoPath:
-        print("❌ Hata: Seçilen düğümler arasında yol yok. Seed değiştirip tekrar dene.")
+        print("❌ Error: No path between selected nodes. Change the seed and try again.")
     except KeyError as e:
-        print(f"❌ Hata: İsim uyuşmazlığı var! Kod '{e}' ismini bulamıyor.")
+        print(f"❌ Error: Name mismatch! Code could not find '{e}'.")
     except Exception as e:
-        print(f"❌ Beklenmedik Hata: {e}")
+        print(f"❌ Unexpected Error: {e}")

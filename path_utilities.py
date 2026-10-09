@@ -3,38 +3,38 @@ import pandas as pd
 import random
 from generate_graf import graf_uret, kontrol_yazdir
 
-# 1. Grafı oluştur (Diğer dosyadaki fonksiyonu kullanarak)
+# 1. Create the graph (using the function from the other file)
 G = graf_uret()
 
 def yolu_Sadelestir(path):
     """
-    Verilen yol içerisindeki gereksiz döngüleri (cycle) tespit eder ve temizler.
-    Liste yerine Sözlük (Dictionary) kullanarak işlemi hızlandırır.
-    Örn: [0, 5, 7, 9, 7, 10] -> [0, 5, 7, 10]
+    Detect and remove unnecessary cycles in the given path.
+    Uses a Dictionary for speed.
+    E.g.: [0, 5, 7, 9, 7, 10] -> [0, 5, 7, 10]
     """
     cleaned = []
-    seen = {}  #Sözlük (Dictionary) Sözlük (Dictionary): Anahtar ve Değer (Key : Value) eşleşmesi vardır.
+    seen = {}  # Dictionary: Key-Value mapping.
 
-    # 'seen' sözlüğü hafıza görevi görür. 
-    # Hangi düğümün, temizlenmiş listenin kaçıncı sırasında olduğunu tutar.
-    # Yapısı: {Düğüm_No: İndeks_No} örn: {0:0, 5:1, 7:2}
+    # The 'seen' dict acts as memory.
+    # It stores which node appears at which index in the cleaned list.
+    # Structure: {Node_No: Index_No} e.g.: {0:0, 5:1, 7:2}
 
     for node in path:
-        # DÖNGÜ TESPİTİ
-        # Eğer şu anki düğüm (node) zaten hafızada (seen) varsa,
-        # demek ki buraya daha önce uğramışız ve bir daire çizip geri gelmişiz.
+        # CYCLE DETECTION
+        # If the current node is already in memory (seen),
+        # it means we visited it before and looped back.
         if node in seen:
             
-            # daha önceki indexe kadar kes
+            # cut back to the previous index
             idx = seen[node]
             cleaned = cleaned[:idx+1]
-            # hafizanin temizligi icin
-            # Listeyi kestigimiz icin, silinen dugumlerin hafızadan da (seen) silinmesi gerekir.
-            # Sadece 'cleaned' icinde kalan dugumler icin sozlugu yeniden olusturuyoruz.
-            seen = {n: i for i, n in enumerate(cleaned)}  #Python'da bir listeyi numaralandırmaya yarayan  bir komut.
+            # memory cleanup
+            # Since we truncated the list, deleted nodes must also be removed from memory (seen).
+            # We rebuild the dict only for nodes remaining in 'cleaned'.
+            seen = {n: i for i, n in enumerate(cleaned)}  # Python built-in to enumerate a list with indices.
         else:
-            cleaned.append(node) #Listeye ekle
-            seen[node] = len(cleaned) - 1 # Hafızaya kaydet (Düğüm: İndeks)
+            cleaned.append(node) # Add to list
+            seen[node] = len(cleaned) - 1 # Store in memory (Node: Index)
 
     return cleaned
 """
@@ -42,46 +42,46 @@ test_path =  [
     0, 3, 7, 12, 18, 21, 33, 40, 7, 12, 45, 50, 33, 21, 
     77, 88, 99, 77, 12, 3, 150, 160, 170, 12, 18, 200]
 
-print("Orijinal path:", test_path)
-print("Sadeleştirme sonrası:", yolu_Sadelestir(test_path))
+print("Original path:", test_path)
+print("After simplification:", yolu_Sadelestir(test_path))
 
 """
 def  yol_gecerli_mi(G, path, S, D):
     """
-    Verilen yolun (path) kurallara uygun olup olmadığını denetler.
-    1. Yol boş olmamalı.
-    2. İstenen kaynaktan (S) başlayıp hedefe (D) varmalı.
-    3. Yol üzerindeki tüm adımlar grafikte fiziksel olarak bağlı olmalı.
+    Check whether the given path follows the rules.
+    1. Path must not be empty.
+    2. It must start at the requested source (S) and end at the destination (D).
+    3. Every step on the path must be physically connected in the graph.
     """
-    # Boş ya da çok kısa path'ler geçersiz
+    # Empty or very short paths are invalid
     if not path or len(path) < 2:
         return False
     
-    # Başlangıç ve bitiş kontrolü
+    # Start and end check
     if path[0] != S:
         return False
     if path[-1] != D:
         return False
     
-    # Her adım graf içinde var mı?
+    # Does every step exist in the graph?
     for i in range(len(path) - 1):
         u = path[i]
         v = path[i+1]
-        if not G.has_edge(u, v): #Hafızadaki Graf veri yapısında u ve v düğümleri arasında tanımlı bir kenar olup olmadığını sorgular.
+        if not G.has_edge(u, v): # Query whether an edge between nodes u and v is defined in the in-memory graph.
             return False
     
     return True
 def generate_random_path(G, source, destination, max_steps=300):
     """
-    Kaynak (source) düğümünden hedef (destination) düğümüne 
-    rastgele ama geçerli bir yol üretir.
+    Generate a random but valid path from the
+    source node to the destination node.
     """
-    for _ in range(500):  # çok fazla deneme yapabilir
+    for _ in range(500):  # allow many attempts
         path = [source]
         current = source
         visited = {source}
 
-        while current != destination and len(path) < max_steps: #Bu koşul path çok uzadığı anda döngünün durmasını sağlıyor.
+        while current != destination and len(path) < max_steps: # This condition stops the loop when the path gets too long.
             neighbors = list(G.neighbors(current))
 
             if not neighbors:
@@ -89,14 +89,14 @@ def generate_random_path(G, source, destination, max_steps=300):
             
 
 
-            # Ziyaret edilmemiş komşular
+            # Unvisited neighbors
             unvisited = [n for n in neighbors if n not in visited]
 
-            # %80 ziyaret edilmemiş komşulara git
+            # 80% chance: go to an unvisited neighbor
             if unvisited and random.random() < 0.8:
                 next_node = random.choice(unvisited)
             else:
-                # %20 random komşulardan biri
+                # 20% chance: pick a random neighbor
                 next_node = random.choice(neighbors)
 
             path.append(next_node)
@@ -108,10 +108,10 @@ def generate_random_path(G, source, destination, max_steps=300):
 
     return None
 
-def tamamla_path(G, path, D, max_steps=300): #→ GA / SA aşamasında ÖNEMLİ OLACAK.Değiştirilebilir.
+def tamamla_path(G, path, D, max_steps=300): #→ Will be IMPORTANT in the GA / SA stage. Can be modified.
     """
-    Mutasyon sonrası bozulmuş veya yarım kalmış path'i
-    D'ye ulaşacak şekilde tamamlar.
+    Complete a broken or half-finished path after mutation
+    so that it reaches D.
     """
 
     if not path:
@@ -133,13 +133,13 @@ def tamamla_path(G, path, D, max_steps=300): #→ GA / SA aşamasında ÖNEMLİ 
 
     return yolu_Sadelestir(path) 
 
-# → Simulated Annealing (SA) kodunda kullanılacak. Değiştirilebilir.
+# → Will be used in the Simulated Annealing (SA) code. Can be modified.
 
 
 def generate_neighbor_path(G, path, S, D): 
     """
-    Var olan path üzerinde küçük bir değişiklik yaparak
-    SA için komşu yol üretir.
+    Generate a neighbor path for SA by making
+    a small change to the existing path.
     """
     
     if len(path) < 3:
@@ -158,45 +158,45 @@ def generate_neighbor_path(G, path, S, D):
 
 
 """
-#  KODUN TESTİ 
+#  CODE TEST 
 
-# 1. Rastgele Kaynak (S) ve Hedef (D) seç
+# 1. Pick random Source (S) and Destination (D)
 nodes_list = list(G.nodes())
 S = random.choice(nodes_list)
 D = random.choice(nodes_list)
 
 
-# S ve D aynı olmasın
+# S and D must not be the same
 while S == D:
     D = random.choice(nodes_list)
 
-print(f"\n--- Rota Aranıyor: {S} -> {D} ---")
+print(f"\n--- Searching route: {S} -> {D} ---")
 
-# 2. Fonksiyonunu çağır (Sonucu 'random_path' değişkenine ata)
+# 2. Call the function (assign result to 'random_path')
 random_path = generate_random_path(G, S, D)
 
 if random_path: 
-    print("Yol Bulundu.")
+    print("Path found.")
     
     print(f"path= {random_path}")
-    print(f"Adım Sayısı: {len(random_path)}")
+    print(f"Step count: {len(random_path)}")
     
-    # 3. Geçerlilik kontrolü
+    # 3. Validity check
     is_valid = yol_gecerli_mi(G, random_path, S, D)
-    print(f"Yol Geçerli mi? {is_valid}")
+    print(f"Is path valid? {is_valid}")
 
     
-    # Listenin uzunluğu ile Kümenin (eşsiz elemanların) uzunluğu aynı mı?
+    # Is the list length equal to the set (unique elements) length?
     if len(random_path) == len(set(random_path)):
 
         
-        print("Hiçbir düğüm tekrar etmiyor.")
+        print("No node is repeated.")
     else:
-        print("HATA: Tekrar eden düğümler var")
+        print("ERROR: Repeated nodes exist")
 
 else:
-    # 500 deneme sonunda yol çıkmadıysa
-    print("Yol bulunamadı. Tekrar deneyin.")
+    # If no path found after 500 attempts
+    print("No path found. Try again.")
 
 
 """

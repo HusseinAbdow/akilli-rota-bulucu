@@ -4,7 +4,7 @@ from PyQt6.QtCore import Qt
 class ResultsDialog(QDialog):
     def __init__(self, results, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Deney Sonuçları")
+        self.setWindowTitle("Experiment Results")
         self.resize(800, 600)
         self.results = results
         self.init_ui()
@@ -13,7 +13,7 @@ class ResultsDialog(QDialog):
         layout = QVBoxLayout(self)
 
         # Title
-        title = QLabel("Karşılaştırmalı Analiz Sonuçları")
+        title = QLabel("Comparative Analysis Results")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         font = title.font()
         font.setPointSize(16)
@@ -24,7 +24,7 @@ class ResultsDialog(QDialog):
         # Table
         self.table = QTableWidget()
         self.table.setColumnCount(4)
-        self.table.setHorizontalHeaderLabels(["Algoritma", "Ortalama Maliyet", "Ortalama Süre (s)", "Toplam Deneme"])
+        self.table.setHorizontalHeaderLabels(["Algorithm", "Average Cost", "Average Time (s)", "Total Trials"])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         layout.addWidget(self.table)
         
@@ -32,7 +32,7 @@ class ResultsDialog(QDialog):
         self.load_data()
 
         # Close Button
-        btn_close = QPushButton("Kapat")
+        btn_close = QPushButton("Close")
         btn_close.clicked.connect(self.accept)
         layout.addWidget(btn_close)
 

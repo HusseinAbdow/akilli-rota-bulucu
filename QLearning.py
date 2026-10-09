@@ -18,7 +18,7 @@ W_RESOURCE = 0.34
 class QLearningAgent:
     def __init__(self, start_node, goal_node):
         
-        print("Graf yükleniyor...")
+        print("Loading graph...")
         self.G = generate_graf.graf_uret()
         self.nodes = list(self.G.nodes())
         self.num_nodes = len(self.nodes)
@@ -30,12 +30,12 @@ class QLearningAgent:
         self.q_table = np.zeros((self.num_nodes, self.num_nodes))
 
     def get_valid_actions(self, current_node):
-        """Bir düğümden gidilebilecek komşuları döndürür"""
+        """Return the neighbors reachable from a node"""
         return list(self.G.neighbors(current_node))
 
     def calculate_reward(self, path):
         """
-        PDF'teki Formül (Sayfa 6):
+        Formula from PDF (Page 6):
         Reward = 1000 / TotalCost(P)
         
         TotalCost(P) = (W_delay * Delay) + (W_rel * RelCost) + (W_res * ResCost)
@@ -61,7 +61,7 @@ class QLearningAgent:
         return 1000.0 / total_cost
 
     def train(self):
-        print(f"Q-Learning Eğitimi Başlıyor ({EPISODES} epizot)...")
+        print(f"Q-Learning training starting ({EPISODES} episodes)...")
         
         for episode in range(EPISODES):
             current_node = self.start_node
@@ -112,17 +112,17 @@ class QLearningAgent:
                 path.append(current_node)
                 
             if (episode + 1) % 1000 == 0:
-                print(f"Epizot {episode + 1}/{EPISODES} tamamlandı...")
+                print(f"Episode {episode + 1}/{EPISODES} completed...")
 
-        print("Eğitim Bitti!")
+        print("Training finished!")
 
     def get_best_path(self):
-        """Eğitilmiş Q-Tablosunu kullanarak en iyi yolu çıkarır"""
+        """Extract the best path using the trained Q-table"""
         path = [self.start_node]
         current_node = self.start_node
         visited = set([self.start_node])
         
-        print(f"\nEn iyi yol aranıyor ({self.start_node} -> {self.goal_node})...")
+        print(f"\nSearching best path ({self.start_node} -> {self.goal_node})...")
         
         while current_node != self.goal_node:
             actions = self.get_valid_actions(current_node)
@@ -130,7 +130,7 @@ class QLearningAgent:
             valid_actions = [n for n in actions if n not in visited]
             
             if not valid_actions:
-                print("Hata: Yol tıkandı!")
+                print("Error: Path blocked!")
                 return None
             
             
@@ -142,7 +142,7 @@ class QLearningAgent:
             current_node = best_next_node
             
             if len(path) > self.num_nodes: 
-                print("Hata: Sonsuz döngü tespit edildi.")
+                print("Error: Infinite loop detected.")
                 return None
                 
         return path
@@ -155,16 +155,16 @@ if __name__ == "__main__":
     import generate_graf
     
     print("\n" + "="*60)
-    print("📢 Q-Learning Standalone Modu (Excel Verisi Okunuyor)...")
+    print("📢 Q-Learning Standalone Mode (Reading Excel data)...")
     print("="*60)
     
     try:
         
         df = pd.read_excel("data/DemandData.xlsx")
-        print(f"📂 {len(df)} talep (senaryo) bulundu.\n")
+        print(f"📂 Found {len(df)} demands (scenarios).\n")
         
         
-        print("⚙️ Graf oluşturuluyor (generate_graf)...")
+        print("⚙️ Creating graph (generate_graf)...")
         G = generate_graf.graf_uret()
 
         
@@ -176,7 +176,7 @@ if __name__ == "__main__":
                 demand_val = str(row.iloc[2]).replace(',', '.')
                 demand = float(demand_val)
                 
-                print(f"🔹 Senaryo {index+1}: {src} -> {dst} (Demand: {demand})")
+                print(f"🔹 Scenario {index+1}: {src} -> {dst} (Demand: {demand})")
                 
                 
                 agent = QLearningAgent(src, dst)
@@ -193,16 +193,16 @@ if __name__ == "__main__":
                     r = Metrics.Total_Reliability(G, path)
                     bw = Metrics.Total_Bandwidth(G, path)
                     
-                    print(f"   ✅ Yol: {path}")
+                    print(f"   ✅ Path: {path}")
                     print(f"   📊 Delay: {d:.2f} | Rel: {r:.2f} | BW: {bw:.2f}")
                 else:
-                    print("   ❌ Yol bulunamadı.")
+                    print("   ❌ No path found.")
                 
                 print("-" * 40)
                 
             except Exception as e:
-                print(f"⚠️ Hata (Satır {index+1}): {e}")
+                print(f"⚠️ Error (Row {index+1}): {e}")
                 
     except Exception as e:
-        print(f"❌ Genel Hata: {e}")
-        print("Lütfen 'generate_graf.py' dosyasının ve 'data' klasörünün varlığını kontrol et.")
+        print(f"❌ General Error: {e}")
+        print("Please check that 'generate_graf.py' and the 'data' folder exist.")

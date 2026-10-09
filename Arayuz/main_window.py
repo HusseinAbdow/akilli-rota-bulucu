@@ -4,12 +4,15 @@ from typing import Optional, List, Tuple
 import random
 import statistics
 
-# internal Arayuz imports
+# internal interface imports
 from model import NetworkTopology
 from results_dialog import ResultsDialog
 from graph_view import GraphView
 from controls import ControlPanel
-import runner as experiment_runner   # ✅ FIXED
+import runner as experiment_runner   
+
+
+
 
 # root-level imports (FIXED)
 from ACO_Algorithm import AntColonyOptimizer
@@ -66,17 +69,17 @@ class ComparisonWorker(QThread):
                         path = None
                         
                         try:
-                            if algo_name == "ACO Algoritma":
+                            if algo_name == "ACO Algorithm":
                                 weights_dict = {'delay': w_d, 'reliability': w_r, 'bandwidth': w_b}
                                 # Create new instance for fairness
                                 aco = AntColonyOptimizer(self.G, src, dst, demand, weights_dict, num_ants=10, max_iter=5)
                                 path, _, _ = aco.run()
                                 
-                            elif algo_name == "Genetik Algoritma":
+                            elif algo_name == "Genetic Algorithm":
                                 path = genetic_algorithm(self.G, src, dst, demand_mbps=demand, 
                                                          w_delay=w_d, w_rel=w_r, w_band=w_b)
                                 
-                            elif algo_name == "Q-Learning Algoritma":
+                            elif algo_name == "Q-Learning Algorithm":
                                 params = {'alpha': 0.1, 'gamma': 0.9, 'epsilon': 0.1, 'episodes': 2000}
                                 agent = QLearningAgent(src, dst, self.G, alpha=params['alpha'], gamma=params['gamma'], epsilon=params['epsilon'], episodes=params['episodes'])
                                 agent.train()
@@ -111,7 +114,7 @@ class ComparisonWorker(QThread):
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Akilli-Rota-Bulucu")
+        self.setWindowTitle("Smart-Route-Finder")
         self.resize(1200, 800)
         
         # Central Widget & Layout
@@ -152,7 +155,7 @@ class MainWindow(QMainWindow):
 
     def generate_network(self):
         try:
-            # Use the new generation logic from graf_uret
+            # Use the generation logic from generate_graf
             G = generate_graf.graf_uret()
             # Store Raw Graph
             self.G = G
@@ -172,7 +175,7 @@ class MainWindow(QMainWindow):
             self.controls.show_results(None)
             
         except Exception as e:
-            QMessageBox.critical(self, "Hata", f"Ağ oluşturulamadı: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Could not create network: {str(e)}")
 
     def on_node_selected(self, node_id: int):
         if self.source_id is None:
@@ -213,17 +216,17 @@ class MainWindow(QMainWindow):
 
     def calculate_path(self):
         if not self.topology or not self.G:
-            QMessageBox.warning(self, "Uyarı", "Ağ oluşturulmadı.")
+            QMessageBox.warning(self, "Warning", "Network not created.")
             return
         if self.source_id is None or self.target_id is None:
-            QMessageBox.warning(self, "Uyarı", "Lütfen Kaynak ve Hedef düğümleri seçin.")
+            QMessageBox.warning(self, "Warning", "Please select Source and Destination nodes.")
             return
 
         algo_name = self.controls.get_selected_algorithm()
         
         # Validation for Explicit Selection
-        if algo_name == "Algoritma Seçiniz...":
-            QMessageBox.warning(self, "Uyarı", "Lütfen bir algoritma seçiniz.")
+        if algo_name == "Select Algorithm...":
+            QMessageBox.warning(self, "Warning", "Please select an algorithm.")
             return
 
         weights_tuple = self.controls.get_weights() 
@@ -231,7 +234,7 @@ class MainWindow(QMainWindow):
         # New Validation: Sum must be exactly 1.0 (with small epsilon for float)
         total_weight = sum(weights_tuple)
         if abs(total_weight - 1.0) > 1e-5:
-            QMessageBox.warning(self, "Uyarı", f"Ağırlıkların toplamı 1 olmalıdır. (Şu anki toplam: {total_weight:.2f})")
+            QMessageBox.warning(self, "Warning", f"Weights must sum to 1. (Current sum: {total_weight:.2f})")
             return
 
         weights_dict = {
@@ -249,7 +252,7 @@ class MainWindow(QMainWindow):
             # Use stored graph
             G_algo = self.G
             
-            if algo_name == "ACO Algoritma":
+            if algo_name == "ACO Algorithm":
                 aco = AntColonyOptimizer(
                     G_algo, 
                     self.source_id, 
@@ -262,7 +265,7 @@ class MainWindow(QMainWindow):
                 best_path, cost, metrics = aco.run()
                 final_path = best_path
                 
-            elif algo_name == "Genetik Algoritma":
+            elif algo_name == "Genetic Algorithm":
                 best_path = genetic_algorithm(
                     G_algo,
                     self.source_id, 
@@ -274,14 +277,14 @@ class MainWindow(QMainWindow):
                 )
                 final_path = best_path
  
-            elif algo_name == "Q-Learning Algoritma":
+            elif algo_name == "Q-Learning Algorithm":
                 agent = QLearningAgent(self.source_id, self.target_id, G=G_algo)
                 agent.train() 
                 final_path = agent.get_best_path()
 
 
             else:
-                 QMessageBox.information(self, "Bilgi", f"{algo_name} henüz bağlanmadı.")
+                 QMessageBox.information(self, "Info", f"{algo_name} not connected yet.")
                  QApplication.restoreOverrideCursor()
                  return
 
@@ -318,12 +321,12 @@ class MainWindow(QMainWindow):
                 self.controls.show_results(result_obj)
             else:
                 self.controls.show_results(None)
-                QMessageBox.information(self, "Sonuç", "Yol bulunamadı.")
+                QMessageBox.information(self, "Result", "No path found.")
                 
         except Exception as e:
             import traceback
             traceback.print_exc()
-            QMessageBox.critical(self, "Hata", f"Algoritma hatası: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Algorithm error: {str(e)}")
         finally:
             QApplication.restoreOverrideCursor()
 
@@ -331,7 +334,7 @@ class MainWindow(QMainWindow):
 
     def generate_random_cases(self):
         if not self.topology:
-             QMessageBox.warning(self, "Uyarı", "Önce topoloji oluşturun.")
+             QMessageBox.warning(self, "Warning", "Create the topology first.")
              return
              
         nodes = [n.id for n in self.topology.get_nodes()]
@@ -350,7 +353,7 @@ class MainWindow(QMainWindow):
 
     def run_custom_experiment(self):
         if not self.topology or not self.G:
-             QMessageBox.warning(self, "Uyarı", "Önce topoloji oluşturun.")
+             QMessageBox.warning(self, "Warning", "Create the topology first.")
              return
         
         config = self.controls.get_experiment_config()
@@ -359,10 +362,10 @@ class MainWindow(QMainWindow):
         reps = config['repetitions']
         
         if not cases:
-            QMessageBox.warning(self, "Uyarı", "Lütfen deney durumları ekleyin.")
+            QMessageBox.warning(self, "Warning", "Please add experiment cases.")
             return
         if not algo_names:
-            QMessageBox.warning(self, "Uyarı", "Lütfen en az bir algoritma seçin.")
+            QMessageBox.warning(self, "Warning", "Please select at least one algorithm.")
             return
 
         weights = self.controls.get_weights() 
@@ -370,7 +373,7 @@ class MainWindow(QMainWindow):
         # Validate Weights for Experiment
         total_weight = sum(weights)
         if abs(total_weight - 1.0) > 1e-5:
-            QMessageBox.warning(self, "Uyarı", f"Ağırlıkların toplamı 1 olmalıdır. (Şu anki toplam: {total_weight:.2f})")
+            QMessageBox.warning(self, "Warning", f"Weights must sum to 1. (Current sum: {total_weight:.2f})")
             return
         
         # Start Worker
@@ -379,14 +382,14 @@ class MainWindow(QMainWindow):
         self.worker.finished_signal.connect(self.on_experiment_finished)
         self.worker.error_signal.connect(self.on_experiment_error)
         
-        self.statusBar().showMessage("Karşılaştırma yapılıyor, lütfen bekleyin...")
+        self.statusBar().showMessage("Running comparison, please wait...")
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         self.controls.setEnabled(False) 
         
         self.worker.start()
 
     def on_experiment_finished(self, results):
-        self.statusBar().showMessage("Deney Tamamlandı")
+        self.statusBar().showMessage("Experiment Completed")
         QApplication.restoreOverrideCursor()
         self.controls.setEnabled(True)
         
@@ -399,7 +402,7 @@ class MainWindow(QMainWindow):
         dlg.exec()
 
     def on_experiment_error(self, err):
-        self.statusBar().showMessage("Hata")
+        self.statusBar().showMessage("Error")
         QApplication.restoreOverrideCursor()
         self.controls.setEnabled(True)
-        QMessageBox.critical(self, "Deney Hatası", str(err))
+        QMessageBox.critical(self, "Experiment Error", str(err))

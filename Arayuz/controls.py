@@ -21,19 +21,19 @@ class ControlPanel(QWidget):
         layout = QVBoxLayout(self)
         
         # 1. Network Generation Group
-        group_gen = QGroupBox("1. Ağ Oluşturma")
+        group_gen = QGroupBox("1. Network Generation")
         layout_gen = QVBoxLayout()
-        self.btn_generate = QPushButton("🔄 Rastgele Ağ Oluştur")
+        self.btn_generate = QPushButton("🔄 Generate Random Network")
         self.btn_generate.clicked.connect(self.generate_signal.emit)
         layout_gen.addWidget(self.btn_generate)
         
-        self.lbl_stats = QLabel("Düğümler: 0 | Bağlantılar: 0")
+        self.lbl_stats = QLabel("Nodes: 0 | Links: 0")
         layout_gen.addWidget(self.lbl_stats)
         group_gen.setLayout(layout_gen)
         layout.addWidget(group_gen)
         
-        # 2. Path Finding Selection Group
-        group_sel = QGroupBox("2. Yol Bulma Ayarları")
+        # 2. Path Finding Settings Group
+        group_sel = QGroupBox("2. Path Finding Settings")
         layout_sel = QFormLayout()
         
         # Source/Target Spinboxes
@@ -41,22 +41,22 @@ class ControlPanel(QWidget):
         self.spin_source = QSpinBox()
         self.spin_source.setRange(0, 250)
         self.spin_source.setValue(0)
-        # self.spin_source.setSpecialValueText("Seçiniz") # Removed as requested
+        # self.spin_source.setSpecialValueText("Select") # Removed as requested
         self.spin_source.valueChanged.connect(self.source_changed_signal.emit)
         
         self.spin_target = QSpinBox()
         self.spin_target.setRange(0, 250)
         self.spin_target.setValue(0)
-        # self.spin_target.setSpecialValueText("Seçiniz") # Removed as requested
+        # self.spin_target.setSpecialValueText("Select") # Removed as requested
         self.spin_target.valueChanged.connect(self.target_changed_signal.emit)
         
-        layout_sel.addRow("Kaynak (S):", self.spin_source)
-        layout_sel.addRow("Hedef (D):", self.spin_target)
+        layout_sel.addRow("Source (S):", self.spin_source)
+        layout_sel.addRow("Destination (D):", self.spin_target)
         
         # Algorithm Selection
         self.combo_algo = QComboBox()
-        self.combo_algo.addItems(["Algoritma Seçiniz...", "ACO Algoritma", "Genetik Algoritma", "Q-Learning Algoritma"])
-        layout_sel.addRow("Algoritma:", self.combo_algo)
+        self.combo_algo.addItems(["Select Algorithm...", "ACO Algorithm", "Genetic Algorithm", "Q-Learning Algorithm"])
+        layout_sel.addRow("Algorithm:", self.combo_algo)
         
         # Weights
         self.spin_w_delay = QDoubleSpinBox()
@@ -74,11 +74,11 @@ class ControlPanel(QWidget):
         self.spin_w_bw.setSingleStep(0.1)
         self.spin_w_bw.setValue(0.0)
         
-        layout_sel.addRow("Gecikme (w1):", self.spin_w_delay)
-        layout_sel.addRow("Güvenilirlik (w2):", self.spin_w_rel)
-        layout_sel.addRow("Bant Genişliği (w3):", self.spin_w_bw)
+        layout_sel.addRow("Delay (w1):", self.spin_w_delay)
+        layout_sel.addRow("Reliability (w2):", self.spin_w_rel)
+        layout_sel.addRow("Bandwidth (w3):", self.spin_w_bw)
         
-        self.btn_calculate = QPushButton("🚀 En İyi Yolu Bul")
+        self.btn_calculate = QPushButton("🚀 Find Best Path")
         self.btn_calculate.clicked.connect(self.calculate_signal.emit)
         layout_sel.addRow(self.btn_calculate)
         
@@ -86,29 +86,29 @@ class ControlPanel(QWidget):
         layout.addWidget(group_sel)
         
         # 3. Results Area
-        group_res = QGroupBox("Sonuçlar")
+        group_res = QGroupBox("Results")
         layout_res = QVBoxLayout()
-        self.lbl_result_summary = QLabel("Sonuç bekleniyor...")
+        self.lbl_result_summary = QLabel("Waiting for result...")
         self.lbl_result_summary.setWordWrap(True)
         layout_res.addWidget(self.lbl_result_summary)
         group_res.setLayout(layout_res)
         layout.addWidget(group_res)
         
         # 4. Experiment Mode
-        group_exp = QGroupBox("3. Deneysel Karşılaştırma")
+        group_exp = QGroupBox("3. Experimental Comparison")
         layout_exp = QVBoxLayout()
         
-        self.btn_add_random_cases = QPushButton("🎲 Rastgele Senaryolar Ekle (20 adet)")
+        self.btn_add_random_cases = QPushButton("🎲 Add Random Scenarios (20)")
         self.btn_add_random_cases.clicked.connect(self.request_random_cases_signal.emit)
         layout_exp.addWidget(self.btn_add_random_cases)
         
         self.txt_cases = QTextEdit()
-        self.txt_cases.setPlaceholderText("Yüklenen senaryolar burada görünecek...")
+        self.txt_cases.setPlaceholderText("Loaded scenarios will appear here...")
         self.txt_cases.setMaximumHeight(100)
         self.txt_cases.setReadOnly(True)
         layout_exp.addWidget(self.txt_cases)
         
-        self.btn_run_experiment = QPushButton("🧪 Karşılaştırmayı Başlat")
+        self.btn_run_experiment = QPushButton("🧪 Start Comparison")
         self.btn_run_experiment.clicked.connect(self.run_custom_experiment_signal.emit)
         layout_exp.addWidget(self.btn_run_experiment)
         
@@ -165,7 +165,7 @@ class ControlPanel(QWidget):
                 s.blockSignals(False)
 
     def set_stats(self, nodes, links):
-        self.lbl_stats.setText(f"Düğümler: {nodes} | Bağlantılar: {links}")
+        self.lbl_stats.setText(f"Nodes: {nodes} | Links: {links}")
 
     def get_selected_algorithm(self):
         return self.combo_algo.currentText()
@@ -192,17 +192,17 @@ class ControlPanel(QWidget):
 
     def show_results(self, result_obj):
         if result_obj is None:
-            self.lbl_result_summary.setText("Yol bulunamadı veya seçim yapılmadı.")
+            self.lbl_result_summary.setText("No path found or no selection made.")
             self.lbl_result_summary.setStyleSheet("color: gray;")
             return
             
-        text = (f"<b>Algoritma Başarılı!</b><br>"
-                f"Yol: {result_obj.path_nodes}<br>"
-                f"Toplam Maliyet: {result_obj.total_cost:.4f}<br>"
-                f"Gecikme: {result_obj.total_delay:.2f} ms<br>"
-                f"Güvenilirlik Maliyeti: {result_obj.total_reliability:.4f}<br>"
-                f"Bant Genişliği Maliyeti: {result_obj.resource_cost:.4f}<br>"
-                f"Süre: {result_obj.execution_time:.4f} sn")
+        text = (f"<b>Algorithm Succeeded!</b><br>"
+                f"Path: {result_obj.path_nodes}<br>"
+                f"Total Cost: {result_obj.total_cost:.4f}<br>"
+                f"Delay: {result_obj.total_delay:.2f} ms<br>"
+                f"Reliability Cost: {result_obj.total_reliability:.4f}<br>"
+                f"Bandwidth Cost: {result_obj.resource_cost:.4f}<br>"
+                f"Time: {result_obj.execution_time:.4f} s")
         
         self.lbl_result_summary.setText(text)
         self.lbl_result_summary.setStyleSheet("color: #2ecc71; font-size: 11px;")
@@ -212,17 +212,17 @@ class ControlPanel(QWidget):
         self.update_cases_text()
 
     def update_cases_text(self):
-        txt = f"Toplam Senaryo: {len(self.experiment_cases)}\n"
+        txt = f"Total Scenarios: {len(self.experiment_cases)}\n"
         for i, (s, d, b) in enumerate(self.experiment_cases[-5:]): # Show last 5
             txt += f"{i+1}. {s} -> {d} ({b:.1f} Mbps)\n"
         if len(self.experiment_cases) > 5:
-            txt += "... (+ daha fazla)"
+            txt += "... (+ more)"
         self.txt_cases.setText(txt)
 
     def get_experiment_config(self):
         # Return currently loaded configuration
         return {
             'cases': self.experiment_cases,
-            'algorithms': ["ACO Algoritma", "Genetik Algoritma", "Q-Learning Algoritma"],
+            'algorithms': ["ACO Algorithm", "Genetic Algorithm", "Q-Learning Algorithm"],
             'repetitions': 1 # Default to 1 to save time, or make configurable
         }

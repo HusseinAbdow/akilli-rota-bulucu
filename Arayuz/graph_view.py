@@ -19,8 +19,7 @@ DEFAULT_EDGE_WIDTH = 1
 
 class NodeItem(QGraphicsEllipseItem):
     """
-    Sürüklenebilir düğüm öğesi. Hareket ettiğinde bağlı kenarları günceller.
-    (Draggable node item. Updates connected edges when moved.)
+    Draggable node item. Updates connected edges when moved.
     """
     def __init__(self, node_id, x, y, graph_view, show_label=False):
         super().__init__(x - NODE_RADIUS, y - NODE_RADIUS, NODE_DIAMETER, NODE_DIAMETER)
@@ -28,7 +27,7 @@ class NodeItem(QGraphicsEllipseItem):
         self.graph_view = graph_view
         self.edges: List[QGraphicsLineItem] = [] # (line, is_source)
         
-        # Etkinleştir: Seçilebilir, Hareket Ettirilebilir, Pozisyon Değişikliği Gönderir
+        # Enable: Selectable, Movable, Sends Position Changes
         self.setFlags(
             QGraphicsEllipseItem.GraphicsItemFlag.ItemIsSelectable |
             QGraphicsEllipseItem.GraphicsItemFlag.ItemIsMovable |
@@ -204,36 +203,35 @@ class NodeItem(QGraphicsEllipseItem):
         return super().itemChange(change, value)
 
     def update_edges(self):
-        # Düğümün yeni merkezi
+        # New center of the node
         center = self.scenePos() + QPointF(NODE_RADIUS, NODE_RADIUS) # local rect offset
-        # Aslında scenePos() item'ın (0,0) noktasını verir (o da rect.topLeft değil, item'ın local koordinat sistemidir).
-        # Ellipse rect'imiz (x-R, y-R) ile tanımlı olduğu için, item'ın orijini merkez değil.
-        # Ancak spring_layout'dan gelen x,y'yi setPos ile değil rect ile set ettik.
-        # Daha temiz yöntem: rect'i (-R, -R, D, D) yapıp setPos(x, y) kullanmak.
+        # Actually scenePos() gives the (0,0) point of the item (which is not rect.topLeft, but the item's local coordinate system).
+        # Since our ellipse rect is defined with (x-R, y-R), the item origin is not the center.
+        # But we set rect with setPos(x, y) from spring_layout, cleaner method: make rect (-R, -R, D, D) and use setPos(x, y).
         
-        # Hack: mevcut rect mantığına göre hareket:
-        # scenePos, sürüklemeden kaynaklı ofsettir.
-        # Orijinal rect (x-R, y-R).
-        # Güncel merkez = scenePos() + OrijinalMerkez
+        # Hack: logic based on current rect:
+        # scenePos is the offset caused by dragging.
+        # Original rect (x-R, y-R).
+        # Current center = scenePos() + OriginalCenter
         
-        # Basitlik için: tüm kenarları yeniden çizmek yerine uç noktalarını güncelle.
-        # Ama QGraphicsLineItem'ın setLine'ı var.
-        pass # Bu mantığı graph_view içinde yönetmek daha kolay olabilir veya burada.
+        # For simplicity: update endpoints instead of redrawing all edges.
+        # But QGraphicsLineItem has setLine.
+        pass # It may be easier to manage this logic inside graph_view or here.
         
         if self.graph_view:
             self.graph_view.update_connected_edges(self.node_id)
 
 class GraphView(QGraphicsView):
     """
-    Ağ topolojisini görselleştirmek için araç.
-    Renkler:
-    - Normal Düğüm: #3498db (Mavi)
-    - Kaynak Düğüm: #2ecc71 (Yeşil)
-    - Hedef Düğüm: #e74c3c (Kırmızı)
-    - Yol Kenarları: #f1c40f (Sarı/Altın)
-    - Normal Kenarlar: #95a5a6 (Gri)
+    Tool to visualize the network topology.
+    Colors:
+    - Normal Node: #3498db (Blue)
+    - Source Node: #2ecc71 (Green)
+    - Destination Node: #e74c3c (Red)
+    - Path Edges: #f1c40f (Yellow/Gold)
+    - Normal Edges: #95a5a6 (Grey)
     """
-    node_selected = pyqtSignal(int)  # Tıklandığında düğüm kimliğini yayan sinyal
+    node_selected = pyqtSignal(int)  # Signal emitting node id when clicked
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -319,21 +317,21 @@ class GraphView(QGraphicsView):
         self.btn_zoom_in = QPushButton("+", self)
         self.btn_zoom_in.setFixedSize(40, 40)
         self.btn_zoom_in.setStyleSheet(btn_style)
-        self.btn_zoom_in.setToolTip("Yakınlaş")
+        self.btn_zoom_in.setToolTip("Zoom In")
         self.btn_zoom_in.clicked.connect(self.zoom_in)
         
         # Zoom Out (-)
         self.btn_zoom_out = QPushButton("-", self)
         self.btn_zoom_out.setFixedSize(40, 40)
         self.btn_zoom_out.setStyleSheet(btn_style)
-        self.btn_zoom_out.setToolTip("Uzaklaş")
+        self.btn_zoom_out.setToolTip("Zoom Out")
         self.btn_zoom_out.clicked.connect(self.zoom_out)
         
         # Toggle Labels (Eye)
         self.btn_labels = QPushButton("", self) # No text, icon only
         self.btn_labels.setFixedSize(40, 40)
         self.btn_labels.setStyleSheet(btn_style)
-        self.btn_labels.setToolTip("Etiketleri Göster/Gizle")
+        self.btn_labels.setToolTip("Show/Hide Labels")
         self.btn_labels.setCheckable(True)
         # Default is Hidden -> Show Slashed Eye (Closed)
         self.btn_labels.setIcon(self._create_eye_icon(slashed=True))
@@ -474,28 +472,28 @@ class GraphView(QGraphicsView):
         if not self.topology:
             return
 
-        # Düğümleri Çiz (Node Items)
-        # Önce düğümleri oluştur ki kenarlar referans alabilsin mi? 
-        # Hayır, Z-order ile kenarlar arkada kalsın.
+        # Draw Nodes (Node Items)
+        # Create nodes first so edges can reference them?
+        # No, keep edges behind with Z-order.
         
-        # Ancak dinamik güncelleme için düğümlerin nesnelerine ihtiyacımız var.
+        # But we need node objects for dynamic updates.
         
-        # 1. Düğümleri oluştur
+        # 1. Create nodes
         for node_id, (x, y) in self.node_positions.items():
-            # Rect'i merkeze göre ayarla (-R, -R) böylece setPos(x,y) tam merkez olur
+            # Adjust rect relative to center (-R, -R) so setPos(x,y) is exactly the center
             item = NodeItem(node_id, 0, 0, self, self.show_node_labels) 
             item.setRect(-NODE_RADIUS, -NODE_RADIUS, NODE_DIAMETER, NODE_DIAMETER)
             item.setPos(x, y)
-            item.setZValue(10) # Düğümler üstte
+            item.setZValue(10) # Nodes on top
             self.scene.addItem(item)
             self.node_items[node_id] = item
 
-        # 2. Kenarları Çiz
-        # 2. Kenarları Çiz
-        # Gruplama ile performans optimizasyonu
+        # 2. Draw Edges
+        # 2. Draw Edges
+        # Performance optimization with grouping
         self.edge_group = QGraphicsItemGroup()
         self.scene.addItem(self.edge_group)
-        self.edge_group.setZValue(0) # Kenarlar altta
+        self.edge_group.setZValue(0) # Edges at the bottom
         self.edge_group.setOpacity(self.edge_alpha / 255.0) # Apply current opacity
 
         color = QColor("#4A4A4A") # User requested darker grey
@@ -515,7 +513,7 @@ class GraphView(QGraphicsView):
              # line.setZValue(0) # ZValue handled by group
              
              self.edge_items[(u, v)] = line
-             self.edge_items[(v, u)] = line # Çift yönlü erişim için
+             self.edge_items[(v, u)] = line # For bidirectional access
 
         # Auto-fit to show the whole graph
         self.fit_to_view()
@@ -549,7 +547,7 @@ class GraphView(QGraphicsView):
             self.scene.addItem(star)
             
     def update_connected_edges(self, node_id):
-        """NodeItem hareket ettiğinde çağrılır."""
+        """Called when a NodeItem moves."""
         if not self.topology:
             return
             
@@ -560,7 +558,7 @@ class GraphView(QGraphicsView):
         item = self.node_items[node_id]
         new_pos = item.scenePos()
         
-        # Bu düğüme bağlı tüm kenarları bul ve güncelle
+        # Find all edges connected to this node and update them
         for neighbor in self.topology.graph.neighbors(node_id):
             edge_key = (node_id, neighbor)
             if edge_key in self.edge_items:
@@ -570,22 +568,22 @@ class GraphView(QGraphicsView):
                 
                 line_item.setLine(new_pos.x(), new_pos.y(), other_pos.x(), other_pos.y())
                 
-        # Eğer yol vurgusu varsa onu güncelle (overlay'i yeniden çiz)
+        # If a path highlight exists, update it (redraw the overlay)
         if self.path_nodes and node_id in self.path_nodes:
             self.draw_path_overlay()
 
     def mousePressEvent(self, event):
         item = self.itemAt(event.pos())
-        # Tıklanan NodeItem ise sinyal gönder
-        # (NodeItem, QGraphicsItem'dan türetildiği için bu çalışır, ancak scenePos ve parent yapısı farklı olabilir)
-        # itemAt en üsttekini verir.
+        # If the clicked item is a NodeItem, emit a signal
+        # (This works since NodeItem derives from QGraphicsItem, but scenePos and parent structure may differ)
+        # itemAt returns the topmost item.
         
-        # NodeItem sürüklemeyi engellememesi için, sadece tıklama (basıp bırakma) mı yoksa sürükleme mi ayırt edilmeli?
-        # QGraphicsView varsayılan davranışı: ItemIsMovable varsa sürükler.
-        # Biz sadece seçim yapmak istiyoruz. Sürükleme başladığında seçim değişmemeli mi?
-        # Basitçe: her tıklamada seç.
+        # To avoid NodeItem blocking drags, should we distinguish click (press-release) vs drag?
+        # QGraphicsView default behavior: drags if ItemIsMovable is set.
+        # We just want to select. Should selection change when dragging starts?
+        # Simply: select on every click.
         
-        # Not: itemAt bazen line veya scene döner.
+        # Note: itemAt sometimes returns a line or scene.
         if isinstance(item, NodeItem):
             self.node_selected.emit(item.node_id)
         
@@ -668,7 +666,7 @@ class GraphView(QGraphicsView):
                 item.setBrush(QBrush(QColor("#78909c"))) # Slate Grey for normal nodes
                 item.setPen(QPen(Qt.PenStyle.NoPen)) # Ensure no border for others
                 
-                # Boyut güncelleme (Reset size)
+                # Size update (Reset size)
                 diameter = NODE_RADIUS * 2
                 item.setRect(-NODE_RADIUS, -NODE_RADIUS, diameter, diameter)
                 
@@ -702,7 +700,7 @@ class GraphView(QGraphicsView):
         return QPointF(bx, by)
 
     def draw_path_overlay(self):
-        # 1. Eski kaplamayı kaldır
+        # 1. Remove old overlay
         if hasattr(self, 'path_overlay_items'):
             for item in self.path_overlay_items:
                 if item.scene():
@@ -873,7 +871,7 @@ class GraphView(QGraphicsView):
         op_layout = QHBoxLayout(opacity_widget)
         op_layout.setContentsMargins(10, 5, 10, 5)
         
-        lbl_op = QLabel("Opaklık:")
+        lbl_op = QLabel("Opacity:")
         lbl_op.setFixedWidth(60)
         
         slider_op = QSlider(Qt.Orientation.Horizontal)
@@ -913,7 +911,7 @@ class GraphView(QGraphicsView):
         w_layout = QHBoxLayout(width_widget)
         w_layout.setContentsMargins(10, 5, 10, 5)
         
-        lbl_w = QLabel("Kalınlık:")
+        lbl_w = QLabel("Thickness:")
         lbl_w.setFixedWidth(60)
         
         slider_w = QSlider(Qt.Orientation.Horizontal)

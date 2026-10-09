@@ -1,22 +1,22 @@
 import networkx as nx
 import pandas as pd
 
-# Excel dosyalarının yolları
+# Paths to the Excel files
 NODE_DATA_PATH = "data/NodeData.xlsx"
 EDGE_DATA_PATH = "data/EdgeData.xlsx"
 
 
-# Excel'den Graf oluşturucu 
+# Build a graph from Excel files
 def graf_uret():
 
-    # Boş bir graph oluştur
+    # Create an empty graph
     G = nx.Graph()
 
     
-    #  NODE VERİLERİNİ OKU
+    # READ NODE DATA
     df_nodes = pd.read_excel(NODE_DATA_PATH)
 
-    # Her satır bir node'u temsil eder
+    # Each row represents one node
     for _, row in df_nodes.iterrows():
         node_id = int(row["node_id"])
 
@@ -27,10 +27,10 @@ def graf_uret():
         )
 
    
-    # 2) EDGE VERİLERİNİ OKU
+    # 2) READ EDGE DATA
     df_edges = pd.read_excel(EDGE_DATA_PATH)
 
-    # Her satır bir edge'i temsil eder
+    # Each row represents one edge
     for _, row in df_edges.iterrows():
         src = int(row["src"])
         dst = int(row["dst"])
@@ -46,24 +46,24 @@ def graf_uret():
     return G
 
 
-# Grafik yapısını kontrol et
+# Quick check of the graph structure
 def kontrol_yazdir(G):
-    print("GRAF HIZLI KONTROL")
-    print("Düğüm sayısı:", G.number_of_nodes())
-    print("Kenar sayısı:", G.number_of_edges())
+    print("GRAPH QUICK CHECK")
+    print("Number of nodes:", G.number_of_nodes())
+    print("Number of edges:", G.number_of_edges())
 
-    # Örnek node yazdır
+    # Print a sample node
     node = list(G.nodes())[0]
-    print(f"Örnek düğüm {node} özellikler:", G.nodes[node])
+    print(f"Sample node {node} attributes:", G.nodes[node])
 
-    # Örnek edge yazdır
+    # Print a sample edge
     u, v = list(G.edges())[0]
-    print(f"Örnek kenar ({u}, {v}) özellikler:", G.edges[u, v])
+    print(f"Sample edge ({u}, {v}) attributes:", G.edges[u, v])
 
-    print("Bağlı mı?:", nx.is_connected(G))
+    print("Is connected?:", nx.is_connected(G))
 
 
-# Ana çalıştırma bloğu
+# Main execution block
 if __name__ == "__main__":
     G = graf_uret()
     kontrol_yazdir(G)
